@@ -1,5 +1,6 @@
 (ns k16.kmono.cp-test
   (:require
+   [babashka.fs :as fs]
    [clojure.test :refer [deftest is use-fixtures]]
    [k16.kmono.core.config :as core.config]
    [k16.kmono.core.packages :as core.packages]
@@ -28,6 +29,16 @@
         cmd (kmono.cp/generate-classpath-command *repo* config packages)]
 
     (is (= "clojure -Sdeps '{:aliases {:a/test {:extra-paths [\"packages/a/test\"], :extra-deps #:local{excluded #:local{:root \"packages/excluded\"}}}, :kmono/packages {:extra-deps #:com.kepler16{a #:local{:root \"packages/a\"}, b #:local{:root \"packages/b\"}}}}}' -A:kmono/packages -Spath"
+           cmd))))
+
+(deftest generate-cp-command-with-base-dir-test
+  (let [config (core.config/resolve-workspace-config *repo*)
+        packages (core.packages/resolve-packages *repo* config)
+        base-dir (str (fs/file *repo* "packages/a"))
+
+        cmd (kmono.cp/generate-classpath-command *repo* base-dir config packages)]
+
+    (is (= "clojure -Sdeps '{:aliases {:a/test {:extra-paths [\"test\"], :extra-deps #:local{excluded #:local{:root \"../excluded\"}}}, :kmono/packages {:extra-deps #:com.kepler16{a #:local{:root \".\"}, b #:local{:root \"../b\"}}}}}' -A:kmono/packages -Spath"
            cmd))))
 
 (deftest generate-cp-command-with-aliases-test

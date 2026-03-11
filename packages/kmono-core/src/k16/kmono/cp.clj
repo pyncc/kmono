@@ -57,19 +57,24 @@
                  (:aliases workspace-config))))))
 
 (defn generate-classpath-command
-  "Generate an augmented `clojure -Spath` command string."
-  [project-root workspace-config packages]
-  (let [sdeps-aliases (core.deps/generate-sdeps-aliases project-root packages)
-        sdeps {:aliases sdeps-aliases}
+  "Generate an augmented `clojure -Spath` command string.
 
-        aliases (collect-aliases workspace-config packages)
+   Paths in the generated `-Sdeps` are relativized to `base-dir`. When
+   `base-dir` is not provided it defaults to `project-root`."
+  ([project-root workspace-config packages]
+   (generate-classpath-command project-root project-root workspace-config packages))
+  ([project-root base-dir workspace-config packages]
+   (let [sdeps-aliases (core.deps/generate-sdeps-aliases project-root base-dir packages)
+         sdeps {:aliases sdeps-aliases}
 
-        command ["clojure"
-                 "-Sdeps" (str "'" (str/trim (prn-str (into (sorted-map) sdeps))) "'")
-                 (str "-A" (serialize-aliases aliases))
-                 "-Spath"]]
+         aliases (collect-aliases workspace-config packages)
 
-    (str/join " " command)))
+         command ["clojure"
+                  "-Sdeps" (str "'" (str/trim (prn-str (into (sorted-map) sdeps))) "'")
+                  (str "-A" (serialize-aliases aliases))
+                  "-Spath"]]
+
+     (str/join " " command))))
 
 (defn resolve-classpath
   "Resolve a classpath string for a workspace.
@@ -77,11 +82,16 @@
    This works by shelling out to `clojure -Spath` with additional flags
    generated from analysing the workspace.
 
+   When `base-dir` is provided the subprocess runs from that directory and
+   paths are relativized to it. Defaults to `project-root`.
+
    See [[generate-classpath-command]] for the command construction logic."
-  [project-root workspace-config packages]
-  (:out
-   (proc/shell
-    {:dir (str project-root)
-     :out :string
-     :err :string}
-    (generate-classpath-command project-root workspace-config packages))))
+  ([project-root workspace-config packages]
+   (resolve-classpath project-root project-root workspace-config packages))
+  ([project-root base-dir workspace-config packages]
+   (:out
+    (proc/shell
+     {:dir (str base-dir)
+      :out :string
+      :err :string}
+     (generate-classpath-command project-root base-dir workspace-config packages)))))

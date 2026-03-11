@@ -30,6 +30,21 @@
                   :extra-deps {'local/excluded {:local/root "packages/excluded"}}}}
                 sdeps))))
 
+(deftest resolve-package-aliases-from-subdir-test
+  (let [config (core.config/resolve-workspace-config *repo*)
+        packages (core.packages/resolve-packages *repo* config)
+        base-dir (str (fs/file *repo* "packages/a"))
+
+        sdeps (core.deps/generate-sdeps-aliases *repo* base-dir packages)]
+
+    (is (match? {:kmono/packages {:extra-deps {'com.kepler16/a {:local/root "."}
+                                                'com.kepler16/b {:local/root "../b"}}}
+
+                 :a/test
+                 {:extra-paths ["test"]
+                  :extra-deps {'local/excluded {:local/root "../excluded"}}}}
+                sdeps))))
+
 (deftest filter-package-aliases-test
   (let [config (core.config/resolve-workspace-config *repo*)
         packages (core.packages/resolve-packages *repo* config)]
