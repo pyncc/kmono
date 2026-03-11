@@ -18,7 +18,7 @@
                            A M T X] :as props} args]
   (let [aliases (or A M T X)
         props (assoc props :aliases aliases)
-        {:keys [root config packages]} (common.context/load-context props)
+        {:keys [root dir config packages]} (common.context/load-context props)
 
         packages
         (cond-> packages
@@ -42,7 +42,7 @@
                T "T"
                X "X")
 
-        sdeps-aliases (core.deps/generate-sdeps-aliases root packages)
+        sdeps-aliases (core.deps/generate-sdeps-aliases root dir packages)
         sdeps {:aliases sdeps-aliases}
 
         aliases (kmono.cp/collect-aliases config packages)
@@ -61,7 +61,7 @@
               (log/debug [:system-grey "Running clojure command:"])
               (log/debug [:system-grey command])))
 
-        opts {:dir root :inherit true}
+        opts {:dir dir :inherit true}
         proc (proc/process opts command)]
 
     (doto (Runtime/getRuntime)
