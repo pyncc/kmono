@@ -1,5 +1,6 @@
 (ns k16.kmono.cli.commands.clojure
   (:require
+   [babashka.fs :as fs]
    [babashka.process :as proc]
    [clojure.java.io :as io]
    [clojure.string :as str]
@@ -14,7 +15,7 @@
 
 (set! *warn-on-reflection* true)
 
-(defn run-clojure [{:keys [filter skip-unchanged changed changed-since
+(defn run-clojure [{:keys [dir filter skip-unchanged changed changed-since
                            A M T X] :as props} args]
   (let [aliases (or A M T X)
         props (assoc props :aliases aliases)
@@ -35,6 +36,22 @@
           (->> (kmono.version/resolve-package-changes-since root changed-since)
                (core.graph/filter-by kmono.version/package-changed?
                                      {:include-dependents true})))
+
+        ;; Determine targeted packages for per-package alias injection
+        targeted-packages
+        (cond
+          filter packages
+          (not= (or dir (str (fs/cwd))) root)
+          (core.packages/find-package-at-dir (or dir (str (fs/cwd))) packages))
+
+        pkg-aliases (when (seq targeted-packages)
+                      (->> (vals targeted-packages)
+                           (mapcat :aliases)
+                           (remove nil?)
+                           vec))
+
+        config (cond-> config
+                 (seq pkg-aliases) (update :aliases (fnil into []) pkg-aliases))
 
         mode (cond
                A "A"

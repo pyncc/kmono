@@ -43,6 +43,22 @@
     (is (= "clojure -Sdeps '{:aliases {:a/test {:extra-paths [\"packages/a/test\"], :extra-deps #:local{excluded #:local{:root \"packages/excluded\"}}}, :kmono/packages {:extra-deps #:com.kepler16{a #:local{:root \"packages/a\"}, b #:local{:root \"packages/b\"}}}}}' -A:kmono/packages:local -Spath"
            cmd))))
 
+(deftest collect-aliases-with-per-package-aliases-test
+  (let [config (core.config/resolve-workspace-config *repo*)
+        packages (core.packages/resolve-packages *repo* config)
+
+        ;; Simulate per-package alias injection (as run-clojure does)
+        pkg-aliases (->> (vals packages)
+                         (mapcat :aliases)
+                         (remove nil?)
+                         vec)
+        config (cond-> config
+                 (seq pkg-aliases) (update :aliases into pkg-aliases))
+
+        aliases (kmono.cp/collect-aliases config packages)]
+
+    (is (some #{:workspace/shared} aliases))))
+
 (deftest resolve-classpath-test
   (let [config (core.config/resolve-workspace-config *repo*)
         packages (core.packages/resolve-packages *repo* config)

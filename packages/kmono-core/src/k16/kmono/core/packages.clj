@@ -17,7 +17,7 @@
       (let [relative-path (str (fs/relativize project-root package-path))
             package (merge {:name (symbol (fs/file-name package-path))}
                            (select-keys workspace-config [:group])
-                           (select-keys config [:group :name :deps-edn])
+                           (select-keys config [:group :name :deps-edn :aliases])
                            {:absolute-path (str package-path)
                             :relative-path relative-path
                             :depends-on #{}})
@@ -127,6 +127,17 @@
   [globs]
   (fn name-matches-filter-fn [pkg]
     (boolean (some #(glob-matches? % (:fqn pkg)) globs))))
+
+(defn find-package-at-dir
+  "Find packages whose root directory contains the given dir.
+   Returns a package map of matching packages."
+  [dir packages]
+  (let [dir-path (fs/path (fs/normalize dir))]
+    (into {}
+          (filter (fn [[_ pkg]]
+                    (.startsWith dir-path
+                                 (fs/path (fs/normalize (:absolute-path pkg))))))
+          packages)))
 
 (defn resolve-packages
   "Resolve the packages graph for a clojure project.

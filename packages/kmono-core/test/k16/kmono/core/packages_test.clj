@@ -16,6 +16,7 @@
                                   :name 'a
                                   :fqn 'com.kepler16/a
 
+                                  :aliases [:workspace/shared]
                                   :deps-edn {}
                                   :depends-on #{}
                                   :dependents #{'com.kepler16/b}
@@ -37,6 +38,15 @@
                 packages))
 
     (is (= 2 (count packages)))))
+
+(deftest find-package-at-dir-test
+  (let [config (core.config/resolve-workspace-config *repo*)
+        packages (core.packages/resolve-packages *repo* config)
+        found (core.packages/find-package-at-dir
+               (str (fs/file *repo* "packages/a"))
+               packages)]
+    (is (= 1 (count found)))
+    (is (contains? found 'com.kepler16/a))))
 
 (deftest missing-group-test
   (fs/write-bytes (fs/file *repo* "deps.edn")
