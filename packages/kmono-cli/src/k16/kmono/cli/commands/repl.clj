@@ -32,8 +32,13 @@
 
         pkg-repl-aliases (when (seq targeted-packages)
                            (->> (vals targeted-packages)
-                                (mapcat :repl-aliases)
-                                (remove nil?)
+                                (mapcat (fn [pkg]
+                                          (->> (:repl-aliases pkg)
+                                               (remove nil?)
+                                               (map (fn [alias]
+                                                      (if (namespace alias)
+                                                        alias
+                                                        (keyword (name (:fqn pkg)) (name alias))))))))
                                 vec))
 
         effective-repl-aliases (into (vec repl-aliases) (or pkg-repl-aliases []))]
