@@ -59,6 +59,26 @@
 
     (is (some #{:workspace/shared} aliases))))
 
+(deftest run-command-per-package-alias-injection-test
+  (let [config (core.config/resolve-workspace-config *repo*)
+        packages (core.packages/resolve-packages *repo* config)
+
+        ;; Simulate the command-fn that run-command builds per package
+        aliases [:test]
+        flag "-M"
+        build-cmd (fn [pkg]
+                    (let [pkg-aliases (:aliases pkg)
+                          all-aliases (into aliases (or pkg-aliases []))]
+                      (into ["clojure" (str flag (kmono.cp/serialize-aliases all-aliases))] [])))
+
+        ;; Package a has :kmono/package {:aliases [:workspace/shared]}
+        cmd-a (build-cmd (get packages 'com.kepler16/a))
+        ;; Package b has no per-package aliases
+        cmd-b (build-cmd (get packages 'com.kepler16/b))]
+
+    (is (= ["clojure" "-M:test:workspace/shared"] cmd-a))
+    (is (= ["clojure" "-M:test"] cmd-b))))
+
 (deftest resolve-classpath-test
   (let [config (core.config/resolve-workspace-config *repo*)
         packages (core.packages/resolve-packages *repo* config)
