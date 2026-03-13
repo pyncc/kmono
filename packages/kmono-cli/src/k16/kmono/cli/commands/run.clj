@@ -46,7 +46,10 @@
         (kmono.exec/run-external-cmds
          {:packages packages
           :run-in-order (:run-in-order opts)
-          :command (into ["clojure" (str flag (kmono.cp/serialize-aliases aliases))] args)
+          :command (fn [pkg]
+                     (let [pkg-aliases (:aliases pkg)
+                           all-aliases (into aliases (or pkg-aliases []))]
+                       (into ["clojure" (str flag (kmono.cp/serialize-aliases all-aliases))] args)))
 
           :concurrency (:concurrency opts)
           :on-event common.log/handle-event})
