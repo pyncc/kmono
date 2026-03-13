@@ -13,7 +13,11 @@ This is the overall structure of the project:
 │   │   ├── src
 │   │   ├── test
 │   │   └── deps.edn
-│   └── b
+│   ├── b
+│   │   ├── src
+│   │   ├── test
+│   │   └── deps.edn
+│   └── c
 │       ├── src
 │       ├── test
 │       └── deps.edn
@@ -21,7 +25,26 @@ This is the overall structure of the project:
 └── deps.edn
 ```
 
-In this structure we have two packages - `a` and `b` where package `b` depends on package `a`.
+In this structure we have three packages: `a`, `b` (which depends on `a`), and `c` (which depends on `b`).
+
+Package `c` demonstrates the **per-package aliases** feature. Its `deps.edn` declares:
+
+```clojure
+{:kmono/package {:aliases [:c-dev]}
+ ...}
+```
+
+The `:c-dev` alias is defined in the root `deps.edn`. When package `c` is targeted — either via
+`-F` filter or by running `kmono` from the `packages/c` directory — the `:c-dev` alias is
+automatically injected into the clojure invocation.
+
+```bash
+# :c-dev is injected automatically — clojure runs with -A:kmono/packages:c-dev:test
+kmono clojure -F :com.kepler16/c -A test
+
+# :c-dev is NOT injected when c is not targeted
+kmono clojure -A test
+```
 
 > [!NOTE]
 >
