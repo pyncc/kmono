@@ -1,5 +1,6 @@
 {:kmono/package {:name "c"
-                 :aliases [:c-dev]}
+                 :aliases [:c-dev]
+                 :repl-aliases [:c-dev]}
 
  :deps {com.kepler16/b {:local/root "../b"}}
 
