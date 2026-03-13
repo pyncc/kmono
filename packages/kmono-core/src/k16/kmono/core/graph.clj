@@ -182,7 +182,7 @@
    package filtering. If you need to write your own then you should also make
    sure to keep the `:depends-on` and `:dependents` updated."
   ([predicate-fn packages] (filter-by predicate-fn {} packages))
-  ([predicate-fn {:keys [include-dependents]} packages]
+  ([predicate-fn {:keys [include-dependents include-dependencies]} packages]
    (let [filtered
          (->> packages
               (mapv (fn [[pkg-name pkg]]
@@ -203,6 +203,15 @@
                  (mapcat
                   (fn [pkg-name]
                     (into [pkg-name] (query-dependents packages pkg-name))))
+                 filtered)
+           filtered)
+
+         filtered
+         (if include-dependencies
+           (into #{}
+                 (mapcat
+                  (fn [pkg-name]
+                    (into [pkg-name] (query-dependencies packages pkg-name))))
                  filtered)
            filtered)]
 
