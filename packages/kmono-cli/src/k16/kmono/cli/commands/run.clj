@@ -14,7 +14,17 @@
 (set! *warn-on-reflection* true)
 
 (defn- run-command [{:keys [M T X skip-unchanged changed changed-since] :as opts} args]
-  (let [{:keys [root packages]} (common.context/load-context opts)
+  (let [aliases (or M T X)
+        flag (cond
+               M "-M"
+               T "-T"
+               X "-X")
+
+        _ (when-not aliases
+            (log/error "No alias flag provided. Use -M, -T, or -X")
+            (System/exit 1))
+
+        {:keys [root packages]} (common.context/load-context opts)
         filter' (:filter opts)
         packages (cond-> packages
                    filter'
@@ -31,16 +41,14 @@
                         (core.graph/filter-by kmono.version/package-changed?
                                               {:include-dependents true})))
 
-        aliases (or M T X)
-        flag (cond
-               M "-M"
-               T "-T"
-               X "-X")
-
         packages (core.graph/filter-by
                   (fn [pkg]
                     (boolean (get-in pkg [:deps-edn :aliases (last aliases)])))
                   packages)
+
+        _ (when (empty? packages)
+            (log/info (str "No packages found with alias " (last aliases)))
+            (System/exit 0))
 
         results
         (kmono.exec/run-external-cmds
