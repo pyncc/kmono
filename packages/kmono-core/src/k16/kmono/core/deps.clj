@@ -151,12 +151,31 @@
   ([project-root packages]
    (generate-sdeps-aliases project-root project-root packages))
   ([project-root base-dir packages]
-   (let [local-deps
+   (let [abs-root (str (fs/absolutize (fs/path project-root)))
+         abs-base (str (fs/absolutize (fs/path base-dir)))
+
+         local-deps
          (fs/file project-root "deps.local.edn")
 
          local-aliases
          (when (fs/exists? local-deps)
            (:aliases (core.fs/read-edn-file! local-deps)))
+
+         ;; When running from a subdirectory, clojure won't read the workspace
+         ;; root deps.edn, so we inject its aliases into -Sdeps with paths
+         ;; rewritten relative to base-dir.
+         root-aliases
+         (when (not= abs-root abs-base)
+           (let [root-deps (fs/file project-root "deps.edn")
+                 root-alias-defs (when (fs/exists? root-deps)
+                                   (:aliases (core.fs/read-edn-file! root-deps)))
+                 root-pkg {:absolute-path abs-root}]
+             (when root-alias-defs
+               (reduce-kv
+                 (fn [acc alias-name alias]
+                   (assoc acc alias-name (alter-alias-paths base-dir root-pkg alias)))
+                 {}
+                 root-alias-defs))))
 
          extra-deps
          {:extra-deps (generate-extra-deps base-dir packages)}
@@ -165,6 +184,7 @@
          (generate-all-package-aliases base-dir packages)]
 
      (into (sorted-map)
-           (merge local-aliases
+           (merge root-aliases
+                  local-aliases
                   {:kmono/packages extra-deps}
                   package-aliases)))))
