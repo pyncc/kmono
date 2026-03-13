@@ -18,6 +18,7 @@ This is the overall structure of the project:
 │   │   ├── test
 │   │   └── deps.edn
 │   └── c
+│       ├── dev
 │       ├── src
 │       ├── test
 │       └── deps.edn
@@ -38,12 +39,51 @@ The `:c-dev` alias is defined in the root `deps.edn`. When package `c` is target
 `-F` filter or by running `kmono` from the `packages/c` directory — the `:c-dev` alias is
 automatically injected into the clojure invocation.
 
+The `:c-dev` alias adds `packages/c/dev` to the classpath, making the `k16.c.dev` namespace
+available only when working with package `c`.
+
 ```bash
-# :c-dev is injected automatically — clojure runs with -A:kmono/packages:c-dev:test
-kmono clojure -F :com.kepler16/c -A test
+# Start a REPL targeting c — :c-dev is injected automatically
+# clojure runs with -A:kmono/packages:c-dev
+kmono clojure -F :com.kepler16/c -A
 
 # :c-dev is NOT injected when c is not targeted
-kmono clojure -A test
+kmono clojure -A
+```
+
+### Running from a package directory
+
+kmono respects the working directory. Running from inside a package directory automatically
+targets that package and its upstream dependency closure, and makes workspace root aliases
+available via `-Sdeps` with paths rewritten relative to your location:
+
+```bash
+# From packages/c — targets c, b, and a; :c-dev injected and available
+cd packages/c
+kmono clojure -A
+
+# Equivalent to running from the workspace root with an explicit filter:
+kmono clojure -F :com.kepler16/c -A
+```
+
+You can also pass `--dir` explicitly from anywhere:
+
+```bash
+kmono --dir packages/c clojure -A
+```
+
+### Filtering includes upstream dependencies
+
+When using `kmono clojure -F` to target a package, kmono automatically includes its full
+upstream dependency closure. All packages the target depends on are added to `:kmono/packages`
+and their scoped aliases (e.g. `:a/test`) are available in `-Sdeps`.
+
+```bash
+# Packages a, b, and c are all on the classpath — c depends on b which depends on a
+kmono clojure -F :com.kepler16/c -A
+
+# Only packages b and a are on the classpath — c is downstream of b, not upstream
+kmono clojure -F :com.kepler16/b -A
 ```
 
 > [!NOTE]

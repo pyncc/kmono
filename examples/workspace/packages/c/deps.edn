@@ -1,4 +1,4 @@
-{:kmono/package {:name "c"
+{:kmono/package {:name c
                  :aliases [:c-dev]}
 
  :deps {com.kepler16/b {:local/root "../b"}}
