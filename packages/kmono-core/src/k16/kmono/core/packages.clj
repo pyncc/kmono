@@ -17,7 +17,7 @@
       (let [relative-path (str (fs/relativize project-root package-path))
             package (merge {:name (symbol (fs/file-name package-path))}
                            (select-keys workspace-config [:group])
-                           (select-keys config [:group :name :deps-edn :aliases])
+                           (select-keys config [:group :name :deps-edn :aliases :repl-aliases])
                            {:absolute-path (str package-path)
                             :relative-path relative-path
                             :depends-on #{}})

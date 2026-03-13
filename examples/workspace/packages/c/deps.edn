@@ -1,8 +1,10 @@
 {:kmono/package {:name c
-                 :aliases [:c-dev]}
+                 :aliases [:versions/clj-test]
+                 :repl-aliases [:dev]}
 
  :deps {com.kepler16/b {:local/root "../b"}}
 
- :aliases {:test {:extra-paths ["test"]
-                  :extra-deps {lambdaisland/kaocha {:mvn/version "1.91.1392"}}
+ :aliases {:dev {:extra-paths ["dev"]}
+           :test {:extra-paths ["test"]
+                  :extra-deps {lambdaisland/kaocha nil}
                   :main-opts ["-m" "kaocha.runner" "-c" "../../tests.edn"]}}}

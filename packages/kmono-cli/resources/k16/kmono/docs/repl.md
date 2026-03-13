@@ -14,6 +14,21 @@ Configuration example:
                    :package-aliases [:*/dev]}}
 ```
 
+Packages can declare their own `:repl-aliases` in their `:kmono/package` config. When
+`kmono repl` is run from within a package directory (or with `--dir` pointing to one),
+those aliases are automatically added — no extra flags needed.
+
+```clojure
+;; packages/my-lib/deps.edn
+{:kmono/package {:repl-aliases [:dev]}
+
+ :aliases {:dev {:extra-paths ["dev"]
+                 :extra-deps {org.clojure/tools.namespace {:mvn/version "1.4.4"}}}}}
+```
+
+With this config, running `kmono repl` from `packages/my-lib/` will include `:dev`
+automatically, equivalent to `kmono repl -A :dev` from the workspace root.
+
 Examples:
 
 ```bash

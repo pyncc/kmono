@@ -27,7 +27,8 @@
    [:name {:optional true}
     [:maybe [:or :string :symbol]]]
    [:excluded {:optional true} :boolean]
-   [:aliases {:optional true} [:vector :keyword]]])
+   [:aliases {:optional true} [:vector :keyword]]
+   [:repl-aliases {:optional true} [:vector :keyword]]])
 
 (def ?Coordinate
   [:map
