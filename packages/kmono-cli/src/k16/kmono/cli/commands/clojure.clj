@@ -24,7 +24,17 @@
         packages
         (cond-> packages
           filter
-          (->> (core.graph/filter-by (core.packages/name-matches? filter)))
+          (->> (core.graph/filter-by (core.packages/name-matches? filter)
+                                     {:include-dependencies true}))
+
+          (and (not filter) (not= dir root))
+          (->> (core.graph/filter-by
+                (fn [pkg]
+                  (let [pkg-path (:absolute-path pkg)]
+                    (or (= dir pkg-path)
+                        (str/starts-with? dir (str pkg-path "/"))
+                        (str/starts-with? pkg-path (str dir "/")))))
+                {:include-dependencies true}))
 
           (or changed skip-unchanged)
           (->> (kmono.version/resolve-package-versions root)

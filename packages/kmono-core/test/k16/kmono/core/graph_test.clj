@@ -112,3 +112,35 @@
                   #(= 'com.kepler16/a (:fqn %))
                   {:include-dependents true}
                   packages))))))
+
+(deftest filter-packages-include-dependencies-test
+  (fs/create-dirs (fs/file *repo* "packages/c"))
+  (fs/write-bytes (fs/file *repo* "packages/c/deps.edn")
+                  (.getBytes (prn-str {:kmono/package {}
+                                       :deps {'com.kepler16/b {:local/root "../b"}}})))
+
+  (let [config (core.config/resolve-workspace-config *repo*)
+        packages (core.packages/resolve-packages *repo* config)]
+
+    (testing "filtering for a leaf package includes its transitive dependencies"
+      (is (match? {'com.kepler16/c {}
+                   'com.kepler16/b {}
+                   'com.kepler16/a {}}
+                  (core.graph/filter-by #(= 'com.kepler16/c (:fqn %))
+                                        {:include-dependencies true}
+                                        packages))))
+
+    (testing "graph edges are trimmed to the retained set"
+      (let [result (core.graph/filter-by #(= 'com.kepler16/c (:fqn %))
+                                         {:include-dependencies true}
+                                         packages)]
+        (is (match? {'com.kepler16/b {:depends-on #{'com.kepler16/a}}}
+                    result))
+        (is (match? {'com.kepler16/a {:depends-on #{}}}
+                    result))))
+
+    (testing "filtering for a root package with no deps returns only itself"
+      (is (match? {'com.kepler16/a {}}
+                  (core.graph/filter-by #(= 'com.kepler16/a (:fqn %))
+                                        {:include-dependencies true}
+                                        packages))))))
