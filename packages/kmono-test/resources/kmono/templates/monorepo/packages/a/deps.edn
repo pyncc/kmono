@@ -1,2 +1,3 @@
-{:aliases {:test {:extra-paths ["test"]
+{:kmono/package {:aliases [:workspace/shared]}
+ :aliases {:test {:extra-paths ["test"]
                   :extra-deps {local/excluded {:local/root "../excluded"}}}}}

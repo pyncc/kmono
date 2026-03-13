@@ -26,7 +26,8 @@
    [:group {:optional true} :symbol]
    [:name {:optional true}
     [:maybe [:or :string :symbol]]]
-   [:excluded {:optional true} :boolean]])
+   [:excluded {:optional true} :boolean]
+   [:aliases {:optional true} [:vector :keyword]]])
 
 (def ?Coordinate
   [:map
@@ -51,6 +52,8 @@
     [:map
      [:deps {:optional true} [:map-of :symbol ?Coordinate]]
      [:aliases {:optional true} [:map-of :keyword :map]]]]
+
+   [:aliases {:optional true} [:vector :keyword]]
 
    [:depends-on [:set :symbol]]
    [:dependents [:set :symbol]]
