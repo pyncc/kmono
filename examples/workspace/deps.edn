@@ -1,10 +1,8 @@
-{:kmono/workspace {:group com.kepler16}
+{:kmono/workspace {:group com.kepler16
+                   :repl-aliases [:workspace/dev]}
 
- :aliases {;; Injected automatically when package c is targeted (via -F or running from packages/c).
-           ;; Demonstrates the per-package :aliases feature from :kmono/package config.
-           :c-dev {:extra-paths ["packages/c/dev"]
-                   :extra-deps {org.clojure/tools.namespace {:mvn/version "1.4.4"}}}
-
+ :aliases {:versions/clj-test {:default-deps {lambdaisland/kaocha {:mvn/version "1.91.1392"}}}
+           :workspace/dev {:extra-deps {org.clojure/tools.namespace {:mvn/version "1.4.4"}}}
            :build {:extra-deps {io.github.clojure/tools.build {:mvn/version "0.10.5"}
                                 com.kepler16/kaven {:mvn/version "1.0.0-alpha.1"}
 
